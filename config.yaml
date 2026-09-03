@@ -1,0 +1,19 @@
+# wechat 接收子项目配置
+# 协议层在 Windows 机（微信 4.x + #130 补丁 version.dll），本进程只做轮询+落缓存+触发。
+# 本进程跑在 Linux 主盒，通过 ssh -L 隧道够到 Windows 机的 hook HTTP 口。
+
+receiver:
+  base_url: "http://127.0.0.1:30001"     # 本机隧道口（ssh -L 到 Windows 30001）
+  poll_interval: 5                        # 轮询间隔秒
+  fts_partitions:                         # message_fts.db 的 4 个全文索引分区
+    - message_fts_v4_0
+    - message_fts_v4_1
+    - message_fts_v4_2
+    - message_fts_v4_3
+  batch_limit: 500                        # 每分区单轮最多取多少条
+  name2id_max_age: 300                    # 本地id→wxid 映射刷新节流（秒）；遇未解析id会强制刷
+  state_file: "state.json"
+  cache_dir: "cache"
+
+# 触发判定（复用 llbot_qq 的模式，后续接 trigger.py）
+# @我/含名字 100% 触发，私聊/群概率。微信用 [微信 触发] 前缀注入 huanri 区分来源。
